@@ -76,7 +76,8 @@ export async function loadTransaction(value, selectedNetwork = 'ethereum', { sig
       const pair = body.pairs.find(pair => pair?.chainId === 'solana' && pair.pairAddress === detected.hash);
       if (!pair || typeof pair.baseToken?.name !== 'string' || typeof pair.baseToken?.symbol !== 'string' || decodeBase58(pair.baseToken?.address)?.length !== 32 || typeof pair.quoteToken?.symbol !== 'string') failResponse();
       const usd = value => (typeof value === 'number' || (typeof value === 'string' && value.trim() !== '')) && Number.isFinite(Number(value)) && Number(value) >= 0 ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumSignificantDigits: 6 }).format(Number(value)) : 'Unavailable';
-      onProgress('MARKET MATCHED · HISTORICAL PRICES UNAVAILABLE');
+      onProgress('MARKET SNAPSHOT MATCHED.');
+      onProgress('HISTORICAL PRICE DATA UNAVAILABLE.');
       return { kind: 'market', network: network.name, hash: detected.hash, token: pair.baseToken.name, symbol: pair.baseToken.symbol, address: pair.baseToken.address, pair: `${pair.baseToken.symbol} / ${pair.quoteToken.symbol}`, price: usd(pair.priceUsd), marketCap: usd(pair.marketCap), liquidity: usd(pair.liquidity?.usd), volume: usd(pair.volume?.h24), url: `https://trade.padre.gg/trade/solana/${detected.hash}` };
     }
     onProgress('VERIFYING RPC NETWORK...');
@@ -97,7 +98,8 @@ export async function loadTransaction(value, selectedNetwork = 'ethereum', { sig
         if (receipt?.transactionHash?.toLowerCase() !== hash || receipt.blockHash !== transaction.blockHash || receipt.blockNumber !== transaction.blockNumber || !['0x0', '0x1'].includes(receipt.status)) failResponse();
         status = receipt.status === '0x1' ? 'Confirmed' : 'Failed on-chain';
       }
-      onProgress('TRANSACTION VERIFIED · TRADE RECONSTRUCTION UNAVAILABLE');
+      onProgress('TRANSACTION VERIFIED.');
+      onProgress('TRADE RECONSTRUCTION UNAVAILABLE.');
       const explorer = { ethereum: 'https://etherscan.io/tx/', base: 'https://basescan.org/tx/', arbitrum: 'https://arbiscan.io/tx/' }[networkKey];
       return { demo: false, hash, network: network.name, status, explorer: explorer + hash, from: transaction.from, block: transaction.blockNumber === null ? null : BigInt(transaction.blockNumber).toString(), value: `${BigInt(transaction.value)} wei` };
     }
@@ -105,7 +107,8 @@ export async function loadTransaction(value, selectedNetwork = 'ethereum', { sig
     if (transaction === null) throw new TransactionError('NOT_FOUND', 'No confirmed transaction was found on Solana mainnet. Check the signature; the transaction may be unconfirmed or outside this provider’s retained history.');
     const payer = transaction?.transaction?.message?.accountKeys?.[0];
     if (transaction?.transaction?.signatures?.[0] !== hash || !Number.isSafeInteger(transaction.slot) || transaction.slot < 0 || !transaction.meta || !Object.hasOwn(transaction.meta, 'err') || decodeBase58(payer)?.length !== 32) failResponse();
-    onProgress('TRANSACTION VERIFIED · TRADE RECONSTRUCTION UNAVAILABLE');
+    onProgress('TRANSACTION VERIFIED.');
+    onProgress('TRADE RECONSTRUCTION UNAVAILABLE.');
     const timestamp = Number.isSafeInteger(transaction.blockTime) && transaction.blockTime > 0 && transaction.blockTime < 8640000000000 ? new Date(transaction.blockTime * 1000).toISOString() : null;
     return { demo: false, hash, network: network.name, explorer: `https://solscan.io/tx/${hash}`, timestamp, status: transaction.meta.err === null ? 'Confirmed' : 'Failed on-chain', block: String(transaction.slot), from: payer };
   } catch (error) {

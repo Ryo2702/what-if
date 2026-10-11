@@ -23,12 +23,16 @@ export function simulatePath(choice, investment, ending, step = 5, peak = 3) {
   return { prices, cash, held, total, contributed, profit: total - contributed, baseline, baselineProfit: baseline - investment, difference: total - contributed - (baseline - investment), actions };
 }
 
-export function reportLines({ choice, investment, ending, peak, token, demo }) {
+export function reportLines({ choice, investment, ending, peak, token, demo, decision, outcome }) {
   const result = simulatePath(choice, investment, ending, 5, peak);
+  const path = decision || `PATH ${String(choice + 1).padStart(2, '0')}`;
+  const outcomeLabel = outcome?.label || 'UNKNOWN OUTCOME';
   return [
     'WHATIF // TIMELINE REPORT',
     `${demo ? 'MEMORY TIMELINE' : 'WHAT-IF TIMELINE'} | ${token}`,
-    `PATH ${String(choice + 1).padStart(2, '0')}`,
+    `${outcome?.emoji || '↳'} WHAT IF I ${path}?`,
+    `OUTCOME: ${outcomeLabel} · ${money(Math.abs(result.difference))} VS BASELINE`,
+    `SCENARIO: ${path}`,
     `Starting amount: ${money(investment)}`,
     `Total contributed: ${money(result.contributed)}`,
     `Baseline exit (assumed 2.4x): ${money(investment * 2.4)}`,
@@ -45,14 +49,25 @@ export function reportLines({ choice, investment, ending, peak, token, demo }) {
   ];
 }
 
-export async function exportReport(lines) {
-  const canvas = document.createElement('canvas'); canvas.width = 1200; canvas.height = 900;
+function drawOutcomeBadge(ctx, outcome) {
+  if (!outcome) return;
+  const color = outcome.key === 'great_escape' || outcome.key === 'market_crash' ? '#d88f88' : outcome.key === 'unknown' ? '#e8bd75' : '#a4e68a';
+  ctx.fillStyle = '#112016'; ctx.fillRect(934, 42, 208, 74);
+  ctx.strokeStyle = color; ctx.strokeRect(934, 42, 208, 74);
+  ctx.font = '30px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif'; ctx.fillStyle = '#dcdcc7'; ctx.fillText(outcome.emoji, 950, 83);
+  // The text label stays legible if this browser cannot draw a color emoji in Canvas.
+  ctx.font = 'bold 10px monospace'; ctx.fillStyle = color; ctx.fillText(`[${outcome.label}]`, 990, 83, 136);
+}
+
+export async function exportReport(lines, outcome) {
+  const canvas = document.createElement('canvas'); canvas.width = 1200; canvas.height = Math.max(900, 126 + lines.length * 46);
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('PNG export is unavailable in this browser.');
-  ctx.fillStyle = '#080D0B'; ctx.fillRect(0, 0, 1200, 900);
-  ctx.strokeStyle = '#334A3A'; ctx.lineWidth = 2; ctx.strokeRect(24, 24, 1152, 852);
+  ctx.fillStyle = '#080D0B'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = '#334A3A'; ctx.lineWidth = 2; ctx.strokeRect(24, 24, canvas.width - 48, canvas.height - 48);
+  drawOutcomeBadge(ctx, outcome);
   lines.forEach((line, index) => {
-    ctx.font = index === 0 ? 'bold 30px monospace' : '20px monospace';
+    ctx.font = index === 0 ? 'bold 30px monospace, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif' : '20px monospace, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
     ctx.fillStyle = index === 0 ? '#A4E68A' : index < 3 ? '#E8BD75' : '#DCDCC7';
     ctx.fillText(line, 60, 80 + index * 46, 1080);
   });

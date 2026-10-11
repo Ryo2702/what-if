@@ -76,7 +76,7 @@ export default function useWallet() {
     const session = { wallet, connected: false, off: null, timer: null };
     active.current = session;
     setState({ ...disconnected, selectedWallet: wallet.name, walletProvider: wallet, connectionStatus: 'connecting' });
-    log('INITIALIZING WALLET CONNECTION...', `PROVIDER: ${wallet.name.toUpperCase()}`, 'REQUESTING PERMISSION...');
+    log('DETECTING WALLET EXTENSION...', `PROVIDER: ${wallet.name.toUpperCase()} DETECTED`, 'REQUESTING WALLET APPROVAL...');
     try {
       session.off = wallet.features['standard:events'].on('change', change => {
         if (active.current !== session || !Object.hasOwn(change, 'accounts')) return;
@@ -97,9 +97,12 @@ export default function useWallet() {
       if (!address) { reset('The wallet did not authorize a valid Solana account.', 'NO AUTHORIZED SOLANA ACCOUNT.'); return; }
       clearTimeout(session.timer); session.connected = true;
       setState({ selectedWallet: wallet.name, walletAddress: address, connectionStatus: 'connected', walletProvider: wallet, connectionError: '' });
-      log('CONNECTION ESTABLISHED', `PUBLIC ADDRESS: ${shortenAddress(address)}`, 'STATUS: CONNECTED');
+      log('CONNECTION ESTABLISHED · WALLET CONNECTED', `ADDRESS: ${shortenAddress(address)}`, 'STATUS: CONNECTED');
     } catch (error) {
-      if (active.current === session) reset(connectionError(error), 'WALLET CONNECTION FAILED. NO ACCOUNT CONNECTED.');
+      if (active.current === session) {
+        const message = connectionError(error);
+        reset(message, /Connection rejected\./.test(message) ? 'USER REJECTED CONNECTION. NO ACCOUNT CONNECTED.' : /Wallet locked\./.test(message) ? 'WALLET LOCKED. CONNECTION REJECTED.' : 'WALLET CONNECTION FAILED. NO ACCOUNT CONNECTED.');
+      }
     }
   }
 

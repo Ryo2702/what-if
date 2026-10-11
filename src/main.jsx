@@ -7,6 +7,7 @@ import useWallet from './useWallet';
 import WalletControl from './WalletControl';
 import './style.css';
 import './wallet.css';
+import './emoji.css';
 
 function App() {
   const reduced = useReducedMotion();

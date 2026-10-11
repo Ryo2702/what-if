@@ -3,6 +3,8 @@ import { AnimatePresence, motion } from 'motion/react';
 import gsap from 'gsap';
 import { Wallet, X, LoaderCircle } from 'lucide-react';
 import { shortenAddress } from './useWallet';
+import EmojiIcon from './EmojiIcon';
+import { emoji } from './emoji';
 
 function WalletDialog({ wallet, paused, onClose }) {
   const dialog = useRef(null);
@@ -20,17 +22,17 @@ function WalletDialog({ wallet, paused, onClose }) {
     }}>
     <div className="window-bar"><span>WHATIF://WALLET_CONNECTION</span><button onClick={onClose} aria-label="Close wallet selection"><X size={18}/></button></div>
     <div className="wallet-modal-body"><h2 id="wallet-title">SELECT WALLET PROVIDER<span className="cursor" aria-hidden="true">_</span></h2>
-      <p id="wallet-help" className="data-note">Desktop browser extensions only. Public address access; no signing or transactions.</p>
+      <p id="wallet-help" className="data-note">Desktop browser extensions only. Public address access; no signing or transactions.</p><p className="wallet-detecting"><EmojiIcon emoji={emoji.wallet.detecting.emoji}/> DETECTING WALLET EXTENSIONS...</p>
       {wallet.mobile && <p className="wallet-notice">Desktop browser extensions are required. Open WhatIf on a desktop browser with Phantom or Solflare installed. Mobile wallet apps are not supported.</p>}
       <div className="wallet-options">{wallet.wallets.map((option, index) => <motion.div className="wallet-option" key={option.name} whileHover={paused ? undefined : { x: 2 }} transition={{ duration: .12 }}>
         <div className="wallet-provider"><img src={option.icon} width="32" height="32" alt=""/><h3>[0{index + 1}] {option.name}</h3></div>
-        <p>STATUS: <span className={option.enabled ? 'positive' : ''}>{option.status}</span></p>
+        <p>STATUS: <span className={option.enabled ? 'positive' : ''}>{option.status}</span></p>{option.enabled && <p className="wallet-detected"><EmojiIcon emoji={emoji.wallet.detected.emoji}/> {option.name.toUpperCase()} DETECTED</p>}
         {option.status === 'NOT DETECTED' ? <a className="wallet-action" href={option.install} target="_blank" rel="noopener noreferrer" aria-label={`Install ${option.name} browser extension`}>[ INSTALL → ]</a> :
           <button disabled={!option.enabled || connecting} onClick={() => wallet.connect(option.provider)} aria-label={`Connect ${option.name}`}>[ CONNECT → ]</button>}
       </motion.div>)}</div>
       {!wallet.mobile && wallet.wallets.some(option => !option.enabled) && <p className="data-note">Not detected? Install or enable the extension, open it to finish setup, then reload this page.</p>}
-      {connecting && <p role="status" className="wallet-progress"><LoaderCircle className="loading-icon" size={16}/> Waiting for {wallet.selectedWallet} approval. Unlock the extension if needed.</p>}
-      {wallet.connectionError && <motion.p role="alert" className="form-error" initial={paused ? false : { opacity: 0, x: -3 }} animate={{ opacity: 1, x: 0 }}>{wallet.connectionError}</motion.p>}
+      {connecting && <p role="status" className="wallet-progress"><EmojiIcon emoji={emoji.wallet.approval.emoji}/><LoaderCircle className="loading-icon" size={16}/> REQUESTING WALLET APPROVAL. Waiting for {wallet.selectedWallet} approval. Unlock the extension if needed.</p>}
+      {wallet.connectionError && <motion.p role="alert" className="form-error" initial={paused ? false : { opacity: 0, x: -3 }} animate={{ opacity: 1, x: 0 }}><EmojiIcon emoji={emoji.wallet.rejected.emoji}/> {wallet.connectionError}</motion.p>}
       <button className="wallet-close" onClick={onClose}>[ ESC ] {connecting ? 'CANCEL / CLOSE' : 'CLOSE'}</button>
     </div>
   </motion.dialog>;
@@ -75,12 +77,12 @@ export default function WalletControl({ wallet, paused }) {
     <AnimatePresence onExitComplete={() => requestAnimationFrame(() => trigger.current?.focus())}>{selection && <WalletDialog key="selection" wallet={wallet} paused={paused} onClose={closeSelection}/>}</AnimatePresence>
     <AnimatePresence>{menu && connected && <motion.div className="wallet-menu" role="dialog" aria-label="Connected wallet" initial={paused ? false : { opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: paused ? 0 : .12 }}>
       <div className="wallet-menu-heading"><h2>{wallet.selectedWallet}</h2><button aria-label="Close wallet details" onClick={() => { setMenu(false); trigger.current.focus(); }}><X size={16}/></button></div>
-      <p className="positive">SOL ● CONNECTED</p><p>{shortenAddress(wallet.walletAddress)}</p><code tabIndex={0} aria-label="Full public address">{wallet.walletAddress}</code>
+      <p className="positive"><EmojiIcon emoji={emoji.wallet.connected.emoji}/> SOL ● CONNECTED</p><p>{shortenAddress(wallet.walletAddress)}</p><code tabIndex={0} aria-label="Full public address">{wallet.walletAddress}</code>
       <button ref={firstAction} onClick={copyAddress}>COPY ADDRESS</button><a className="wallet-action" href={`https://solscan.io/account/${wallet.walletAddress}`} target="_blank" rel="noopener noreferrer">VIEW ON SOLSCAN ↗</a>
       <button onClick={() => { wallet.disconnect(); setMenu(false); trigger.current.focus(); }}>DISCONNECT WALLET</button>
       <p role="status">{copyStatus}</p>
     </motion.div>}</AnimatePresence>
-    {notice && <div ref={toast} role="status" className="wallet-toast"><span className="pixel-square"/> CONNECTION ESTABLISHED</div>}
+    {notice && <div ref={toast} role="status" className="wallet-toast"><EmojiIcon emoji={emoji.wallet.connected.emoji}/><span className="pixel-square"/> CONNECTION ESTABLISHED</div>}
     {!selection && wallet.connectionError && <p className="sr-only" role="alert">{wallet.connectionError}</p>}
   </div>;
 }

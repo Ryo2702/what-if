@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { useReducedMotion } from 'motion/react';
+import EmojiReaction from './EmojiReaction';
 
 const sprite = [
   '....aaaaaa......', '...abbbbbba.....', '..abbbbbbbba....', '.aaaaaaaaaaaa...',
@@ -32,7 +33,7 @@ export function Explorer({ mood = 'idle', className = '', paused = false }) {
   return <canvas ref={canvas} width="24" height="24" className={`explorer ${className}`} role="img" aria-label={`Pixel explorer ${mood}`}/>;
 }
 
-export default function World({ journey = false, progress = 0, mood = 'idle', paused = false }) {
+export default function World({ journey = false, progress = 0, mood = 'idle', paused = false, reaction = null }) {
   const root = useRef(null), actor = useRef(null), reduced = useReducedMotion();
   useEffect(() => {
     if (reduced || paused) return;
@@ -77,7 +78,7 @@ export default function World({ journey = false, progress = 0, mood = 'idle', pa
         <path stroke="#405542" strokeWidth="3" fill="none" d="M321 195v29h-45v22"/>
       </>}
     </svg>
-    <div ref={actor} className="pixel-actor" style={journey ? { left: `${10 + progress * 69}%`, bottom: '20%' } : undefined}><Explorer mood={journey ? mood : mood === 'idle' && !paused ? 'walking' : mood} paused={paused}/></div>
+    <div ref={actor} className="pixel-actor" style={journey ? { left: `${10 + progress * 69}%`, bottom: '20%' } : undefined}><Explorer mood={journey ? mood : mood === 'idle' && !paused ? 'walking' : mood} paused={paused}/><EmojiReaction reaction={reaction} paused={paused}/></div>
     <span className="scene-coordinate">{journey ? `TIMELINE / ${Math.round(progress * 100)}%` : 'ROOM 001 / THE ARCHIVE'}</span>
   </div>;
 }
