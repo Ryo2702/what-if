@@ -1,0 +1,31 @@
+.wallet-control{position:relative;flex-shrink:0}
+.system-tools .wallet-trigger{border:1px solid var(--dim);color:var(--green);padding:10px 12px;white-space:nowrap}
+.wallet-mobile-icon,.wallet-mobile-dot{display:none}
+.wallet-modal{padding:0;width:min(440px,calc(100% - 28px));box-shadow:5px 5px 0 #263a2b}
+.wallet-modal .window-bar{font-size:10px;letter-spacing:0}
+.wallet-modal .window-bar button{border:0;padding:8px;min-width:44px}
+.wallet-modal-body{padding:22px}
+.wallet-modal h2{font-size:16px}
+.wallet-options{display:grid;gap:14px;margin:20px 0}
+.wallet-option{border:1px solid var(--border);padding:16px;background:var(--bg)}
+.wallet-option:hover,.wallet-option:focus-within{border-color:var(--dim);background:#132319}
+.wallet-provider{display:flex;align-items:center;gap:12px}
+.wallet-provider h3{font-size:14px;font-weight:500}
+.wallet-provider img{flex-shrink:0}
+.wallet-option p{font-size:10px;line-height:1.8;color:#94ab96;margin:12px 0;overflow-wrap:anywhere}
+.wallet-action{display:inline-flex;justify-content:center;align-items:center;border:1px solid var(--border);min-height:44px;padding:12px 16px;font-size:11px;color:var(--green)}
+.wallet-action:hover{border-color:var(--dim);background:var(--selected)}
+.wallet-notice,.wallet-progress{font-size:12px;line-height:1.8;color:var(--amber)}
+.wallet-progress{display:flex;gap:10px;align-items:center}
+.wallet-progress svg{flex-shrink:0}
+.wallet-close{margin-top:20px;width:100%}
+.wallet-menu{position:absolute;right:0;top:calc(100% + 12px);width:min(330px,calc(100vw - 32px));z-index:12;border:1px solid var(--dim);background:var(--surface);padding:18px;box-shadow:4px 4px 0 #263a2b;display:grid;gap:10px}
+.wallet-menu-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.wallet-menu-heading h2{font-family:var(--pixel);font-size:24px}
+.wallet-menu p{font-size:11px;line-height:1.8;overflow-wrap:anywhere}
+.wallet-menu code{font:12px/1.8 'IBM Plex Mono',monospace;overflow-wrap:anywhere;padding:10px;background:var(--bg);user-select:all}
+.wallet-menu code:focus-visible{outline:2px solid var(--amber)}
+.system-tools .wallet-menu button{border:1px solid var(--border);min-height:44px;font-size:11px}
+.wallet-toast{position:absolute;top:calc(100% + 12px);right:0;z-index:11;width:260px;max-width:calc(100vw - 32px);display:flex;align-items:center;gap:12px;border:1px solid var(--green);box-shadow:4px 4px 0 #263a2b;background:var(--surface);color:var(--green);padding:16px;font-size:10px;line-height:1.8;pointer-events:none}
+@media(min-width:741px) and (max-width:1150px){.system-header .wordmark small,.system-header .online{display:none}}
+@media(max-width:740px){.system-tools .wallet-trigger{min-width:44px;min-height:44px;padding:10px;margin-left:5px}.wallet-mobile-icon{display:block}.wallet-mobile-dot{display:block;width:5px;height:5px;background:var(--green);position:absolute;top:6px;right:6px}.wallet-modal-body{padding:18px}.wallet-modal h2{font-size:14px}}

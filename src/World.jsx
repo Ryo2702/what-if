@@ -1,40 +1,83 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-gsap.registerPlugin(ScrollTrigger);
+import { useReducedMotion } from 'motion/react';
 
-function Pine({ x, y, scale = 1, color = '#253b3e' }) { return <g transform={`translate(${x} ${y}) scale(${scale})`}><path fill="#443b44" d="M-3 0h6v-48h-6z"/><path fill={color} d="M0-97h6v12h8v12h8v11h-8v5h15v12h9v12H16v5h24v12H-35v-12h15v-6h-11v-12h10v-12h9v-5h-9v-11h9v-12h7v-11H0z"/><path fill="#789778" opacity=".25" d="M0-85h5v13h-9v13h-9v12h-9v12h9v-9h10v-12h8v-12H0z"/></g>; }
-function House({ x, y, scale = 1 }) { return <g transform={`translate(${x} ${y}) scale(${scale})`}><path fill="#292b3d" d="M0 0v-53h86V0z"/><path fill="#675468" d="M4-4v-47h78v47z"/><path fill="#392f43" d="M-10-51v-7h10v-9h11v-9h12v-9h39v9h12v9h12v9h10v7z"/><path fill="#92717c" d="M-10-58H0v-9h11v-9h12v-9h39v7H25v9H14v10H4v7h-14z"/><path fill="#bd9384" d="M67-73v-26h11v34z"/><path fill="#edd198" d="M12-40h20v22H12zm44 0h17v22H56z"/><path stroke="#755459" strokeWidth="3" d="M22-40v22M12-29h20m32-11v22m-8-11h17"/><path fill="#352f3e" d="M37-31h13V0H37z"/><path fill="#d9ae68" d="M46-17h2v2h-2z"/><path fill="#927680" d="M0-8h34v3H0m52-6h32v3H52"/></g>; }
-export function Explorer({ mood = 'idle', className = '' }) { return <svg className={`explorer ${mood} ${className}`} viewBox="0 0 24 32" role="img" aria-label={`Pixel explorer ${mood}`} shapeRendering="crispEdges"><g className="explorer-body"><path fill="#302d40" d="M6 5h12v3h3v13H3V8h3z"/><path fill="#d6a065" d="M6 3h12v3h3v4H3V6h3z"/><path fill="#ebbd7c" d="M7 2h10v4H7zM1 9h22v3H1z"/><path fill="#cbb18c" d="M7 12h11v9H7z"/><path fill="#353044" d="M15 13h2v3h-2z"/><path fill="#789778" d="M5 21h13v7H5z"/><path fill="#b17468" d="M2 19h5v8H2z"/><path fill="#d9b28a" d="M18 22h3v5h-3z"/></g><path className="leg left-leg" fill="#453747" d="M6 28h5v4H4v-2h2z"/><path className="leg right-leg" fill="#453747" d="M13 28h5v2h2v2h-7z"/></svg>; }
-export default function World({ journey = false, progress = 0, mood = 'idle' }) {
-  const root = useRef(null);
-  useEffect(() => { if (matchMedia('(prefers-reduced-motion: reduce)').matches) return; const ctx = gsap.context(() => { gsap.to('.cloud-layer', { x: 30, duration: 26, yoyo: true, repeat: -1, ease: 'sine.inOut' }); gsap.to('.scenery', { y: 55, ease: 'none', scrollTrigger: { trigger: root.current, start: 'top top', end: 'bottom top', scrub: true } }); }, root); return () => ctx.revert(); }, []);
-  useEffect(() => { if (!journey) return; const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; gsap.to(root.current.querySelector('.traveler'), { x: progress * 8.3, duration: reduce ? 0 : 1.1, ease: 'power1.inOut' }); }, [progress, journey]);
-  return <div ref={root} className={`world ${journey ? 'journey-world' : ''} ${journey && progress === 75 ? 'rain-world' : ''}`} aria-label="Pixel art mountain village beneath a lavender night sky" role="img">
-    <svg className="scenery" viewBox="0 0 1440 680" preserveAspectRatio="xMidYMid slice" shapeRendering="crispEdges">
-      <defs><linearGradient id={journey ? 'sky-j' : 'sky'} x2="0" y2="1"><stop stopColor="#22253e"/><stop offset=".53" stopColor="#70617e"/><stop offset="1" stopColor="#c39799"/></linearGradient><linearGradient id={journey ? 'water-j' : 'water'} x2="0" y2="1"><stop stopColor="#81718a"/><stop offset="1" stopColor="#3f5660"/></linearGradient></defs>
-      <path fill={`url(#${journey ? 'sky-j' : 'sky'})`} d="M0 0h1440v680H0z"/>
-      {Array.from({ length: 70 }, (_, i) => <rect key={i} x={(i * 179 + 31) % 1440} y={(i * 73 + 17) % 270} width={i % 6 ? 2 : 4} height={i % 6 ? 2 : 4} fill="#f2e6c9" opacity={.2 + (i % 4) * .16}/>)}
-      <path fill="#f2e6c9" d="M1130 65h30v7h8v26h-8v8h-30v-8h-7V73h7z"/><path fill="#d1c4b8" d="M1152 73h8v8h-8zm-18 21h7v6h-7z"/>
-      <path className="shooting-star" fill="#f2e6c9" d="M760 55h4v4h-4zm-6-4h5v3h-5zm-6-4h5v3h-5zm-6-4h5v3h-5z"/>
-      <g className="cloud-layer" fill="#a190a9" opacity=".2"><path d="M82 141h37v-8h55v8h43v8h46v9H62v-8h20zM870 173h55v-9h61v9h31v8h45v8H846v-8h24zM1204 237h55v-7h76v7h46v9h-192v-5h15z"/><path d="M331 82h28v-8h58v8h37v8h-123z"/></g>
-      <path fill="#665e7d" d="M0 315h35v-20h36v-19h30v-27h37v-33h32v-27h32v-20h33v24h29v23h30v34h32v29h33v25h41v-20h38v-31h36v-32h33v-32h31v-29h30v32h33v31h31v33h35v32h43v23h61v-28h39v-28h33v-28h34v-31h32v-28h32v-24h31v29h29v29h29v25h33v31h29v24h35v27h30v-17h42v-34h33v-33h35v-27h36v-28h33v-29h31v32h34v29h33v32h34v31h40v33h46v190H0z"/>
-      <path fill="#48465f" d="M0 381h46v-26h42v-24h41v-28h45v-29h38v25h42v24h44v28h49v30h59v-17h42v-26h44v-30h41v-27h37v30h40v31h48v24h45v24h66v-17h43v-26h41v-22h40v-26h39v-22h38v23h39v26h44v26h40v27h66v-21h50v-24h45v-30h43v-25h40v30h47v28h45v30h55v31h55v230H0z"/>
-      <path fill="#354451" d="M0 442h92v-18h66v-16h112v19h117v24h167v-16h104v15h153v-23h138v-13h113v15h111v-11h119v16h148v246H0z"/>
-      <path fill={`url(#${journey ? 'water-j' : 'water'})`} d="M600 445h214v16h81v18h-52v18h-98v22H611v24H476v31H201v-35h152v-28h119v-26h76v-22h52z"/>
-      <g fill="#b4a0ac" opacity=".45"><path d="M621 467h144v3H621zm-48 17h95v3h-95zm61 17h123v3H634zm-154 19h108v3H480zm-71 22h146v3H409zm-139 16h115v3H270z"/></g>
-      <g fill="#34423f"><path d="M0 482h90v-13h106v13h138v19h102v26h-74v27H212v38H0zM901 477h177v-12h161v12h201v203H806v-65h-93v-51h99v-38h89z"/></g>
-      {Array.from({ length: 17 }, (_, i) => <Pine key={i} x={i * 97 + 13} y={444 + i % 3 * 12} scale={.38 + i % 3 * .14} color="#31434b"/>)}
-      <House x={1020} y={473} scale={.85}/><House x={1152} y={492} scale={.63}/><House x={283} y={489} scale={.59}/>
-      <path fill="#867468" d="M1440 535h-247v16h-160v19H864v24H668v26H411v29H0v31h434v-23h249v-24h202v-23h173v-25h171v-17h211z"/>
-      <path fill="#413d43" d="M0 652h424v-29h251v-26h196v-22h176v-19h172v-15h221v11h-215v16h-169v20H880v24H684v27H435v29H0z"/>
-      <path fill="none" stroke="#c0a395" strokeWidth="3" d="M0 654h425v-28h253v-25h195v-23h178v-20h172v-15h217M0 667h438v-28h253v-25h195v-23h178v-20h172v-15h204"/>
-      {Array.from({ length: 22 }, (_, i) => <path key={i} stroke="#4d4044" strokeWidth="5" d={`M${i * 20} 647v26`}/>)}
-      <path fill="#252f32" d="M0 602h125v-21h88v-21h117v21h94v24h86v75H0zm971 59h117v-26h115v-15h87v-27h150v87H971z"/>
-      <Pine x={51} y={602} scale={2.4}/><Pine x={143} y={617} scale={1.6}/><Pine x={9} y={660} scale={2.1}/><Pine x={1328} y={601} scale={2}/><Pine x={1412} y={634} scale={2.7}/><Pine x={1244} y={593} scale={1.25}/>
-      <g transform="translate(981 549)"><path fill="#292e3a" d="M0 0h5v-114h-5zm-10-114h25v-6h-25z"/><path fill="#f4d99a" d="M-6-111h17v17H-6z"/><path fill="#f6d798" opacity=".07" d="M-24-129h54v55h-54zM-45-150h96v98h-96z"/></g>
-      <g fill="#bd9b75" opacity=".7">{Array.from({ length: 35 }, (_, i) => <path key={i} d={`M${(i * 127) % 1440} ${590 + i * 17 % 86}h4v3h-4z`}/>)}</g>
-      <g className="traveler" transform={journey ? 'translate(230 572)' : 'translate(916 532)'}><foreignObject width="31" height="42"><Explorer mood={mood}/></foreignObject></g>
-    </svg><div className="scene-vignette"/>
+const sprite = [
+  '....aaaaaa......', '...abbbbbba.....', '..abbbbbbbba....', '.aaaaaaaaaaaa...',
+  '....cccccc......', '....ccdccd......', '....cccccc......', '.....cccc.......',
+  '...eeeffeee.....', '..eeeeffeeee....', '..ceeeffeeec....', '..c.eeffee.c....',
+  '....eeeeee......', '....gg..gg......', '....gg..gg......', '...ggg..ggg.....',
+];
+const colors = { a: '#98734a', b: '#e8bd75', c: '#d8b58a', d: '#17231b', e: '#5c8468', f: '#a4e68a', g: '#b3a68a' };
+export function Explorer({ mood = 'idle', className = '', paused = false }) {
+  const canvas = useRef(null), reduced = useReducedMotion();
+  useEffect(() => {
+    const ctx = canvas.current.getContext('2d'); if (!ctx) return;
+    const draw = () => {
+      const frame = reduced || paused ? 0 : Math.floor(performance.now() / 240) % 2;
+      ctx.clearRect(0, 0, 24, 24);
+      const hop = mood === 'celebrating' ? frame * 2 : 0;
+      sprite.forEach((row, y) => [...row].forEach((pixel, x) => {
+        if (!colors[pixel]) return;
+        ctx.fillStyle = colors[pixel];
+        const stride = mood === 'walking' && y > 12 ? (x < 8 ? frame : -frame) : 0;
+        ctx.fillRect(x + 4 + (mood === 'regret' && y < 8 ? 1 : 0), y + 6 - hop + stride, 1, 1);
+      }));
+      if (mood === 'examining') { ctx.fillStyle = '#dcdcc7'; ctx.fillRect(17, 13, 5, 6); ctx.fillStyle = '#334a3a'; ctx.fillRect(18, 15, 3, 1); }
+      if (mood === 'celebrating') { ctx.fillStyle = '#e8bd75'; ctx.fillRect(2, 2 + frame, 2, 2); ctx.fillRect(20, 4 - frame, 2, 2); }
+    };
+    draw(); const interval = reduced || paused ? null : setInterval(draw, 240);
+    return () => clearInterval(interval);
+  }, [mood, reduced, paused]);
+  return <canvas ref={canvas} width="24" height="24" className={`explorer ${className}`} role="img" aria-label={`Pixel explorer ${mood}`}/>;
+}
+
+export default function World({ journey = false, progress = 0, mood = 'idle', paused = false }) {
+  const root = useRef(null), actor = useRef(null), reduced = useReducedMotion();
+  useEffect(() => {
+    if (reduced || paused) return;
+    const context = gsap.context(() => {
+      gsap.to('.pixel-clouds', { x: 18, duration: 18, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+      if (!journey && mood === 'idle') gsap.to(actor.current, { x: 25, duration: 5, repeat: -1, yoyo: true, ease: 'steps(12)' });
+      if (!journey && mood === 'examining') gsap.to(actor.current, { x: 58, duration: 1, ease: 'steps(8)' });
+    }, root);
+    return () => context.revert();
+  }, [journey, mood, paused, reduced]);
+  const camera = journey ? -progress * 420 : 0;
+  return <div ref={root} className={`pixel-world ${journey ? 'journey-world' : ''}`}>
+    <svg viewBox={journey ? '0 0 480 190' : '0 0 480 300'} aria-hidden="true" shapeRendering="crispEdges">
+      <defs><pattern id={journey ? 'tiles-journey' : 'tiles-lab'} width="32" height="16" patternUnits="userSpaceOnUse"><rect width="32" height="16" fill="#16251b"/><path d="M0 0h32v16M16 0v8M0 8h32" stroke="#2b3f2d" fill="none"/></pattern></defs>
+      {journey ? <>
+        <path fill="#0c1711" d="M0 0h480v190H0z"/>
+        <g className="pixel-clouds" fill="#243b2b"><path d="M40 22h28v-6h30v6h18v8H40zM320 33h28v-8h35v8h20v8h-83z"/></g>
+        <g transform={`translate(${camera * .3} 0)`} fill="#1b3022"><path d="M0 90h35V72h25V54h30v25h25v24h45V60h24V35h40v31h35v35h40V78h30V58h35v24h30v19h30V69h40v36h50V75h50v40h75v-38h38v20h70v52H0z"/></g>
+        <g transform={`translate(${camera} 0)`}>
+          <path fill="url(#tiles-journey)" d="M0 150h960v40H0z"/><path stroke="#5c8468" strokeWidth="3" d="M0 150h960"/>
+          {[60, 208, 356, 504, 652, 800].map((x, i) => <g key={x} transform={`translate(${x} 110)`}><path stroke="#5c8468" strokeWidth="3" d="M0 0v40"/><rect x="-15" y="-16" width="30" height="19" fill={progress * 5 >= i ? '#a4e68a' : '#334a3a'}/><text x="0" y="-3" textAnchor="middle" fill="#080d0b" fontSize="10" fontFamily="monospace">0{i + 1}</text></g>)}
+          <path fill="#334a3a" d="M806 85h8v-8h48v8h8v65h-8V89h-48v61h-8z"/><path fill="#a4e68a" opacity=".2" d="M816 91h44v59h-44z"/>
+        </g>
+      </> : <>
+        <path fill="#111d16" d="M0 0h480v300H0z"/>
+        <path stroke="#1d3023" d="M0 50h480M0 100h480M0 150h480M40 0v190M440 0v190"/>
+        <rect x="43" y="29" width="159" height="99" fill="#334a3a"/><rect x="49" y="35" width="147" height="87" fill="#0a120e"/>
+        <path fill="#dcdcc7" d="M159 46h12v4h4v12h-4v4h-12v-4h-4V50h4z"/>
+        <g className="pixel-clouds" fill="#344737"><path d="M58 70h20v-5h29v5h16v7H58zM130 95h18v-4h26v4h16v6h-60z"/></g>
+        <path fill="#233b2a" d="M49 115h20V99h12v-8h12v17h15v-8h11v-15h10v-9h10v33h18v-10h10v-9h13v15h16v17H49z"/>
+        <path stroke="#455944" strokeWidth="5" d="M124 35v87M49 81h147"/>
+        <path stroke="#415b44" strokeWidth="4" fill="none" d="M252 0v23h36v30M355 0v20h-30v13h57v38"/>
+        <path fill="#314134" d="M237 63h159v128H237z"/><path fill="#7f8667" d="M247 74h139v78H247z"/><path fill="#080d0b" d="M255 82h123v62H255z"/>
+        <path fill="#a4e68a" d="M265 94h35v3h-35zm0 9h76v3h-76zm0 9h54v3h-54zm0 9h14v3h-14z"/><rect className="monitor-cursor" x="283" y="121" width="6" height="4" fill="#a4e68a"/>
+        <path fill="#536a4b" d="M265 159h37v7h-37zm46 0h37v7h-37z"/><rect x="369" y="159" width="5" height="5" fill="#a4e68a"/>
+        <path fill="#7c7351" d="M218 185h191v9H218z"/><path fill="#3c4430" d="M229 194h9v51h-9zm151 0h9v51h-9z"/>
+        <path fill="#928262" d="M231 171h17v14h-17zm17 3h5v8h-5z"/>
+        <path fill="#223629" d="M53 182h58v63H53z"/><path fill="#455e42" d="M49 176h66v9H49z"/><path fill="#8aa872" d="M72 147h7v31h-7zm-12-8h12v17H60zm21 9h12v15H81z"/>
+        <path fill="#344c39" d="M139 145h42v60h-42z"/><path fill="#080d0b" d="M146 151h28v20h-28z"/><path fill="#e8bd75" d="M150 157h20v3h-20zm0 7h11v2h-11z"/>
+        <path fill="url(#tiles-lab)" d="M0 246h480v54H0z"/><path stroke="#5c8468" strokeWidth="3" d="M0 246h480"/>
+        <path fill="#e8bd75" opacity=".05" d="M247 150h139l51 96H185z"/>
+        <path stroke="#405542" strokeWidth="3" fill="none" d="M321 195v29h-45v22"/>
+      </>}
+    </svg>
+    <div ref={actor} className="pixel-actor" style={journey ? { left: `${10 + progress * 69}%`, bottom: '20%' } : undefined}><Explorer mood={journey ? mood : mood === 'idle' && !paused ? 'walking' : mood} paused={paused}/></div>
+    <span className="scene-coordinate">{journey ? `TIMELINE / ${Math.round(progress * 100)}%` : 'ROOM 001 / THE ARCHIVE'}</span>
   </div>;
 }

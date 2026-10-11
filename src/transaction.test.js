@@ -82,3 +82,81 @@ test('demo is synthetic, isolated, and cannot call fetch', () => {
     demo.history[0].price = 999; assert.equal(loadDemoTrade().history[0].price, 1);
   } finally { globalThis.fetch = original; }
 });
+
+const marketAddress = 'HTTDbbgiUZQcoUeaQxZQdtWExCVeYeD8Ur6DjmLQErqr';
+const marketLink = `https://trade.padre.gg/trade/solana/${marketAddress}`;
+const marketPair = { chainId: 'solana', pairAddress: marketAddress, baseToken: { address: 'DCuJKYAhXrrfNkjboVAeEbE7RzHndcZe6kDekg9znoma', name: 'NomaMarkets', symbol: 'NOMA' }, quoteToken: { symbol: 'SOL' }, priceUsd: '0.00004039', marketCap: 40398.02, volume: { h24: 15905.12 } };
+const marketFetch = body => ({ fetcher: async () => ({ ok: true, json: async () => body }) });
+test('Padre Solana links preserve address case and reject unsupported or spoofed URLs', () => {
+  assert.deepEqual(detectTransaction(` ${marketLink}/?ref=test `), { format: 'solana', kind: 'market', hash: marketAddress });
+  for (const value of [marketLink.replace('https:', 'http:'), marketLink.replace('solana', 'base'), marketLink.replace('padre.gg', 'padre.gg.evil.com'), marketLink.replace(marketAddress, signature), marketLink + '/extra', marketLink.replace('trade.padre.gg', 'user@trade.padre.gg')]) assert.equal(detectTransaction(value), null);
+});
+test('Padre market lookup uses fixed Solana endpoint and returns readable market data', async () => {
+  const result = await loadTransaction(marketLink, 'ethereum', { fetcher: async (url, options) => {
+    assert.equal(url, `https://api.dexscreener.com/latest/dex/pairs/solana/${marketAddress}`);
+    assert.ok(options.signal);
+    return { ok: true, json: async () => ({ pairs: [marketPair] }) };
+  } });
+  assert.equal(result.kind, 'market'); assert.equal(result.network, 'Solana mainnet');
+  assert.equal(result.token, 'NomaMarkets'); assert.equal(result.pair, 'NOMA / SOL');
+  assert.equal(result.price, '$0.00004039'); assert.equal(result.liquidity, 'Unavailable');
+  assert.equal(result.url, marketLink); assert.equal(result.from, undefined);
+  const missing = await loadTransaction(marketLink, undefined, marketFetch({ pairs: [{ ...marketPair, priceUsd: null, marketCap: '', volume: { h24: -1 } }] }));
+  assert.equal(missing.price, 'Unavailable'); assert.equal(missing.marketCap, 'Unavailable'); assert.equal(missing.volume, 'Unavailable');
+});
+test('market lookup distinguishes missing markets from malformed or failed responses', async () => {
+  for (const pairs of [null, []]) await assert.rejects(loadTransaction(marketLink, undefined, marketFetch({ pairs })), { code: 'NOT_FOUND' });
+  for (const body of [{}, { pairs: {} }, { pairs: [null] }, { pairs: [{ ...marketPair, chainId: 'base' }] }, { pairs: [{ ...marketPair, pairAddress: 'wrong' }] }, { pairs: [{ ...marketPair, baseToken: {} }] }]) await assert.rejects(loadTransaction(marketLink, undefined, marketFetch(body)), { code: 'API_FAILURE' });
+  await assert.rejects(loadTransaction(marketLink, undefined, { fetcher: async () => ({ ok: false }) }), { code: 'API_FAILURE' });
+});
+
+const { simulatePath, reportLines } = await import('./scenario.js');
+test('all seven paths account for cash, holdings and added contributions', () => {
+  const expected = [700, 3000, 1550, 700 * (1 + 2 / 2.4), 1500, 1350, 700];
+  for (let choice = 0; choice < 7; choice++) {
+    const result = simulatePath(choice, 1000, .7);
+    assert.ok(Math.abs(result.total - expected[choice]) < 1e-9);
+    assert.equal(result.contributed, choice === 3 ? 3000 : 1000);
+    assert.equal(result.profit, result.total - result.contributed);
+    assert.equal(result.difference, result.profit - 1400);
+    assert.equal(result.cash + result.held, result.total);
+    assert.equal(result.actions.length, 6);
+    assert.equal(simulatePath(choice, 1000, .7, 0).total, 1000);
+  }
+  assert.equal(simulatePath(0, 1000, .7).cash, 0);
+  assert.equal(simulatePath(6, 1000, .7).held, 0);
+  assert.equal(simulatePath(5, 1000, .7, 1).cash, 1000);
+  assert.equal(simulatePath(5, 1000, .7, 1).held, 1000);
+  assert.equal(simulatePath(4, 1000, .7, 3).cash, 0);
+  assert.equal(simulatePath(4, 1000, .7, 4).cash, 1500);
+  assert.equal(simulatePath(3, 1000, .7, 1).contributed, 1000);
+  assert.equal(simulatePath(3, 1000, .7, 2).contributed, 3000);
+});
+test('ending changes affect exposed positions; malformed inputs are rejected', () => {
+  assert.equal(simulatePath(0, 1000, 0).total, 0);
+  assert.equal(simulatePath(1, 1000, 0).total, 3000);
+  assert.equal(simulatePath(5, 1000, 0).total, 1000);
+  assert.equal(simulatePath(3, 1000, 3).total, 5500);
+  assert.equal(simulatePath(1, 1000, .7, 5, 8.6).total, 8600);
+  for (const args of [[-1, 1000, .7], [7, 1000, .7], [0, 0, .7], [0, NaN, .7], [0, Infinity, .7], [0, 1e10, .7], [0, 1000, -1], [0, 1000, 4], [0, 1000, .7, 6], [0, 1000, .7, 5, 2], [0, 1000, .7, 5, Infinity]]) assert.throws(() => simulatePath(...args), RangeError);
+});
+test('export report carries calculation basis, contributions and limitations', () => {
+  const lines = reportLines({ choice: 3, investment: 1000, ending: .7, peak: 3, token: 'NOMA', demo: false });
+  assert.ok(lines.includes('WHAT-IF TIMELINE | NOMA'));
+  assert.ok(lines.includes('Total contributed: $3,000.00'));
+  assert.ok(lines.includes('Alternate value: $1,283.33'));
+  assert.ok(lines.includes('Executable sale proceeds: unavailable.'));
+  assert.ok(lines.some(line => line.includes('Historical liquidity: unavailable')));
+  assert.ok(reportLines({ choice: 1, investment: 1000, ending: .7, peak: 8.6, token: 'MEMORY', demo: true }).includes('MEMORY TIMELINE | MEMORY'));
+});
+test('verified record exposes a canonical explorer and optional Solana timestamp', async () => {
+  const events = [];
+  const result = await loadTransaction(hash, 'ethereum', { ...evmRpc(), onProgress: line => events.push(line) });
+  assert.equal(result.explorer, 'https://etherscan.io/tx/' + hash);
+  assert.ok(events.some(line => line.includes('NETWORK VERIFIED')));
+  assert.ok(!events.some(line => line.includes('LOADING HISTORICAL PRICES')));
+  const transaction = { slot: 123, blockTime: 1700000000, meta: { err: null }, transaction: { signatures: [signature], message: { accountKeys: ['1'.repeat(32)] } } };
+  const solana = await loadTransaction(signature, undefined, mockRpc({ getGenesisHash: networks.solana.genesis, getTransaction: transaction }));
+  assert.equal(solana.timestamp, '2023-11-14T22:13:20.000Z');
+  assert.equal(solana.explorer, 'https://solscan.io/tx/' + signature);
+});

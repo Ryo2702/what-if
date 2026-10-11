@@ -1,1 +1,26 @@
-{"name":"whatif","version":"1.0.0","private":true,"type":"module","scripts":{"dev":"vite --host 0.0.0.0","build":"vite build","test":"node --test src/transaction.test.js"},"dependencies":{"@vitejs/plugin-react":"latest","vite":"latest","react":"latest","react-dom":"latest","gsap":"^3.13.0","motion":"^12.0.0","three":"^0.180.0","lucide-react":"^0.468.0"},"devDependencies":{}}
+{
+  "name": "whatif",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "test": "node --test src/transaction.test.js",
+    "test:wallet": "playwright test"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "@wallet-standard/app": "^1.1.1",
+    "gsap": "^3.13.0",
+    "lucide-react": "^0.468.0",
+    "motion": "^12.0.0",
+    "react": "latest",
+    "react-dom": "latest",
+    "three": "^0.180.0",
+    "vite": "latest"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0"
+  }
+}
